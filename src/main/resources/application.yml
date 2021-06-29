@@ -1,0 +1,66 @@
+---
+spring:
+  profiles: local
+  application:    name: apigateway
+
+server:
+  port: 8762
+
+zuul:
+  prefix: /api  # 맨 앞단의 url 고정 값 지정, url 전달은 안된다.
+  sensitive-headers: Cookie,Set-Cookie,Authorization    # Zuul 이 하위 서비스에 전파하지 않는 헤더 차단 목록 (디폴트는 Cookie, Set-Cookie, Authorization)
+  routes: # 라우팅
+    member: # 서비스 명
+      path: /member/**  # url 패턴
+      serviceId: member # eureka 서비스 명
+      stripPrefix: false  # 위치 path명을 같이 준다, true 일시 path값을 제외하고 호출
+    product:
+      path: /product/**
+      serviceId: product
+      stripPrefix: false
+    order:
+      path: /order/**
+      serviceId: order
+      stripPrefix: false
+
+eureka: # 유레카 서버 설정
+  instance: # 유레카 인스턴스 설정
+    hostname: localhost
+  client:
+    register-with-eureka: true  # 유레카 서비스에 등록할지 여부
+    fetch-registry: true  # 유레카에서 조회할지 여부
+    service-url:  # 서비스할 url
+      defaultZone: http://${eureka.instance.hostname}:8761/eureka/  # 유레카 서버의 url
+
+---
+spring:
+  profiles: dev
+
+server:
+  port: 8762 
+  
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+  
+---
+spring:
+  profiles: prd
+
+server:
+  port: 8762
+
+aws:
+  ec2:
+    serviceIp:
+      first: 999.99.99
+      second: 888.88.88
+      
+# 이중화 방안 생각
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    serviceUrl:
+      defaultZone: http://${aws.ec2.serviceIp.first}:${server.port}/eureka/, http://${aws.ec2.serviceIp.second}:${server.port}/eureka/
