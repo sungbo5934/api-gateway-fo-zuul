@@ -1,13 +1,26 @@
+ribbon: 
+    eureka:
+      enabled: true # EUREKA를 사용하여 연결할 backend service를 찾음. 이 값을 false로 하면 ribbon.listOfServers에 콤마로 구분하여 backend service의 주소를 지정
+
+spring:
+  cloud:
+    loadbalancer:
+      retry:
+        enabled: true
+
 ---
 spring:
   profiles: local
-  application:    name: apigateway
+  application:
+    name: apigateway
 
 server:
   port: 8762
 
 zuul:
+  ignored-services: '*' # 무시할 url 패턴
   prefix: /api  # 맨 앞단의 url 고정 값 지정, url 전달은 안된다.
+  retryable: true # retry 모드 여부
   sensitive-headers: Cookie,Set-Cookie,Authorization    # Zuul 이 하위 서비스에 전파하지 않는 헤더 차단 목록 (디폴트는 Cookie, Set-Cookie, Authorization)
   routes: # 라우팅
     member: # 서비스 명
@@ -22,7 +35,39 @@ zuul:
       path: /order/**
       serviceId: order
       stripPrefix: false
+ 
+member:
+  ribbon:
+    NIWSServerListClassName: com.netflix.niws.loadbalancer.DiscoveryEnabledNIWSServerList # Eureka와 연동 활성화
+    #ServerListRefreshInterval: 30000  # Eureka에서 ServerList를 갖고올 주기 ( 기본값 : 30초 )
+    #NIWSServerListFilterClassName: com.netflix.loadbalancer.ServerListSubsetFilter # Eureka에서 갖고온 Service 리스트중 일부 서비스만 L/B에 사용
+    MaxAutoRetries: 0                 # 연결 실패 시 동일 서비스 연결시도 횟수: (지정수+1)만큼 재시도   
+    MaxAutoRetriesNextServer: 1       # 연결 실패 시 다음 서비스 연결 시도 횟수:(지정수+1)만큼 다음 서비스를 찾으려 재시도, ( 이중화 서버 갯수 - 1 )   
+    OkToRetryOnAllOperations: true    # 이 속성이 true로 설정되면 GET 요청 (기본값)뿐만 아니라 모든 유형의 HTTP 요청이 재 시도
+    ConnectTimeout: 1000              # HTTPCLIENT CONNECTION TIMEOUT (연결과정) M/S 단위
+    ReadTimeout: 2000                 # HTTPCLIENT READ TIMEOUT (데이터를 읽어오는 과정) M/S 단위
+    #RetryableStatusCodes: 503, 408, 500, 404, 504                                     # 지정 에러 코드 설정
+    #NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RoundRobinRule             # backend-service를 돌아가면서 연결하는 방식 ( 기본값 )
+    #NFLoadBalancerRuleClassName: com.netflix.loadbalancer.AvailabilityFilteringRule  # 가용성이 높은것부터 연결하는 방식, 3번 이상 연결이 실패하면 30초동안 그 서비스 인스턴스로 연결하지 않음
+    #NFLoadBalancerRuleClassName: com.netflix.loadbalancer.WeightedResponseTimeRule   # 응답시간이 빠른 서비스 인스턴스부터 연결하는 방식
 
+hystrix:
+  command:
+    default:
+      circuitBreaker:
+        sleepWindowInMilliseconds: 5000
+        errorThresholdPercentage: 50
+        requestVolumeThreshold: 20
+      metrics:
+        rollingStats:
+          timeInMilliseconds: 10000
+          numBuckets: 10
+#    event-service:   # 이 부분이 없으면 전체적으로 적용됨
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 5000
+            
 eureka: # 유레카 서버 설정
   instance: # 유레카 인스턴스 설정
     hostname: localhost
