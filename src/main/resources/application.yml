@@ -22,7 +22,8 @@ zuul:
   prefix: /api  # 맨 앞단의 url 고정 값 지정, url 전달은 안된다.
   retryable: true # retry 모드 여부
   sensitive-headers: Cookie,Set-Cookie,Authorization    # Zuul 이 하위 서비스에 전파하지 않는 헤더 차단 목록 (디폴트는 Cookie, Set-Cookie, Authorization)
-  ribbon-isolation-strategy: thread
+  ribbon-isolation-strategy: thread # zuul 이 request를 격리할 방안 선택  ( 기본값 : SEMAPHORE )
+  thread-pool:    use-separate-thread-pools: true # Thread 를 서비스 별로 격리할지 여부 ( false 일시 RibbonCommand이라는 하나의 ThreadPool을 사용)
   routes: # 라우팅
     member: # 서비스 명
       path: /member/**  # url 패턴
