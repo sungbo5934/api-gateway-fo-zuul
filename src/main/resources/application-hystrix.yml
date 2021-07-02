@@ -1,0 +1,40 @@
+---
+
+spring:
+   profiles: local
+
+# Hystrix Circuit Breaker
+# 1. CommandKey ( 각 서버군 이름 ex: member, product ) 이름 단위로 동작
+# 2. 어느 한 서버에서 장애가 발생하여 요청 서버에서 timeout이 발생할때까지 추가 요청이 밀리는 현상을 방지
+# Hystrix Thread & Thread Pool - Request 하나에 Thread 하나를 연결하여 실행이 된다. 따라서 Request와 커맨드가 다른 쓰레드에서 실행되므로 완전한 격리상태로 개별적인 timeout 설정 가능
+# Hystrix Semaphore  - 서비스 호출을 위해 별도의 스레드를 만들지 않고 단지 각 서비스에 대한 동시 호출 수를 제한할 뿐입니다. 
+hystrix:
+  command:
+    default:
+      circuitBreaker:
+        sleepWindowInMilliseconds: 5000 # 서킷 브레이커가 열린 후 히스트릭스가 서비스 호출 시도를 대기하는 시간, 해당 시간 대기 후 다시 시도 ( 기본값 5,000 m/s)
+        errorThresholdPercentage: 50  # 서킷 브레이커가 차단하는 에러 확률 ( timeInMilliseconds 시간동안 requestVolumeThreshold 횟수의 오류 응답 퍼센트 )
+        requestVolumeThreshold: 20  # 히스트릭스가 호출 차단을 고려하는 시간 ( timeInMilliseconds ) 동안 호출을 시도하는 횟수
+      metrics:
+        rollingStats:
+          timeInMilliseconds: 10000 # 서비스 호출 문제를 모니터할 시간 간격, 즉 서킷 브레이커가 열리기 위한 조건을 체크할 시간
+          numBuckets: 10  # 모니터할 시간 간격에서 유지할 측정 지표의 버킷 수, ( timeInMilliseconds )시간 동안 ( numBuckets )의 갯수만큼 쪼개어 통계 및 수집함
+    member:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 8000 
+            # 하나의 Request 즉 Thread에 대한 총 timeout 시간
+            # ribbon 설정과 연관지어서 설정 ( ConnectTimeout + ReadTimeout ) * ( MaxAutoRetries + 1 ) * ( MaxAutoRetriesNextServer + 1) 보다 커야함
+
+---
+
+spring:
+   profiles: dev
+
+
+---
+
+spring:
+   profiles: prd
+

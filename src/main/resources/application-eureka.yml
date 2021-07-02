@@ -1,0 +1,32 @@
+---
+
+spring:
+   profiles: local
+
+    
+eureka: # 유레카 서버 설정
+   instance: # 유레카 인스턴스 설정
+      hostname: localhost
+   client:
+      register-with-eureka: true  # 유레카 서비스에 등록할지 여부
+      fetch-registry: true  # 유레카에서 조회할지 여부
+      service-url:  # 서비스할 urll
+         defaultZone: http://${eureka.instance.hostname}:8761/eureka/  # 유레카 서버의 url
+
+---
+
+spring:
+   profiles: dev
+
+---
+
+spring:
+   profiles: prd
+
+
+eureka:
+   client:
+      register-with-eureka: false
+      fetch-registry: false
+      serviceUrl:
+         defaultZone: http://${aws.ec2.serviceIp.first}:${server.port}/eureka/, http://${aws.ec2.serviceIp.second}:${server.port}/eureka/
