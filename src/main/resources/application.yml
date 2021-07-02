@@ -1,108 +1,55 @@
-ribbon: 
-    eureka:
-      enabled: true # EUREKA를 사용하여 연결할 backend service를 찾음. 이 값을 false로 하면 ribbon.listOfServers에 콤마로 구분하여 backend service의 주소를 지정
-
 spring:
-  cloud:
-    loadbalancer:
-      retry:
-        enabled: true
-
+   application:
+      name: apigateway
+   cloud:
+      loadbalancer:
+         retry:
+            enabled: true
+      
 ---
+
 spring:
-  profiles: local
-  application:
-    name: apigateway
+  profiles: 
+    include:
+      - local
+      - zuul
+      - service
+      - hystrix
+      - ribbon
+      - eureka
 
 server:
   port: 8762
-
-zuul:
-  ignored-services: '*' # 무시할 url 패턴
-  prefix: /api  # 맨 앞단의 url 고정 값 지정, url 전달은 안된다.
-  retryable: true # retry 모드 여부
-  sensitive-headers: Cookie,Set-Cookie,Authorization    # Zuul 이 하위 서비스에 전파하지 않는 헤더 차단 목록 (디폴트는 Cookie, Set-Cookie, Authorization)
-  ribbon-isolation-strategy: thread # zuul 이 request를 격리할 방안 선택  ( 기본값 : SEMAPHORE )
-  thread-pool:    use-separate-thread-pools: true # Thread 를 서비스 별로 격리할지 여부 ( false 일시 RibbonCommand이라는 하나의 ThreadPool을 사용)
-  routes: # 라우팅
-    member: # 서비스 명
-      path: /member/**  # url 패턴
-      serviceId: member # eureka 서비스 명
-      stripPrefix: false  # 위치 path명을 같이 준다, true 일시 path값을 제외하고 호출
-    product:
-      path: /product/**
-      serviceId: product
-      stripPrefix: false
-    order:
-      path: /order/**
-      serviceId: order
-      stripPrefix: false
- 
-member:
-  ribbon:
-    NIWSServerListClassName: com.netflix.niws.loadbalancer.DiscoveryEnabledNIWSServerList # Eureka와 연동 활성화
-    #ServerListRefreshInterval: 30000  # Eureka에서 ServerList를 갖고올 주기 ( 기본값 : 30초 )
-    #NIWSServerListFilterClassName: com.netflix.loadbalancer.ServerListSubsetFilter # Eureka에서 갖고온 Service 리스트중 일부 서비스만 L/B에 사용
-    MaxAutoRetries: 0                 # 연결 실패 시 동일 서비스 연결시도 횟수: (지정수+1)만큼 재시도   
-    MaxAutoRetriesNextServer: 1       # 연결 실패 시 다음 서비스 연결 시도 횟수:(지정수+1)만큼 다음 서비스를 찾으려 재시도, ( 이중화 서버 갯수 - 1 )   
-    OkToRetryOnAllOperations: true    # 이 속성이 true로 설정되면 GET 요청 (기본값)뿐만 아니라 모든 유형의 HTTP 요청이 재 시도
-    ConnectTimeout: 1000              # HTTPCLIENT CONNECTION TIMEOUT (연결과정) M/S 단위
-    ReadTimeout: 2000                 # HTTPCLIENT READ TIMEOUT (데이터를 읽어오는 과정) M/S 단위
-    #RetryableStatusCodes: 503, 408, 500, 404, 504                                     # 지정 에러 코드 설정
-    #NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RoundRobinRule             # backend-service를 돌아가면서 연결하는 방식 ( 기본값 )
-    #NFLoadBalancerRuleClassName: com.netflix.loadbalancer.AvailabilityFilteringRule  # 가용성이 높은것부터 연결하는 방식, 3번 이상 연결이 실패하면 30초동안 그 서비스 인스턴스로 연결하지 않음
-    #NFLoadBalancerRuleClassName: com.netflix.loadbalancer.WeightedResponseTimeRule   # 응답시간이 빠른 서비스 인스턴스부터 연결하는 방식
-
-
-# Hystrix Circuit Breaker
-# 1. CommandKey ( 각 서버군 이름 ex: member, product ) 이름 단위로 동작
-# 2. 어느 한 서버에서 장애가 발생하여 요청 서버에서 timeout이 발생할때까지 추가 요청이 밀리는 현상을 방지
-# Hystrix Thread & Thread Pool - Request 하나에 Thread 하나를 연결하여 실행이 된다. 따라서 Request와 커맨드가 다른 쓰레드에서 실행되므로 완전한 격리상태로 개별적인 timeout 설정 가능
-# Hystrix Semaphore  - 서비스 호출을 위해 별도의 스레드를 만들지 않고 단지 각 서비스에 대한 동시 호출 수를 제한할 뿐입니다. 
-hystrix:
-  command:
-    default:
-      circuitBreaker:
-        sleepWindowInMilliseconds: 5000 # 서킷 브레이커가 열린 후 히스트릭스가 서비스 호출 시도를 대기하는 시간, 해당 시간 대기 후 다시 시도 ( 기본값 5,000 m/s)
-        errorThresholdPercentage: 50  # 서킷 브레이커가 차단하는 에러 확률 ( timeInMilliseconds 시간동안 requestVolumeThreshold 횟수의 오류 응답 퍼센트 )
-        requestVolumeThreshold: 20  # 히스트릭스가 호출 차단을 고려하는 시간 ( timeInMilliseconds ) 동안 호출을 시도하는 횟수
-      metrics:
-        rollingStats:
-          timeInMilliseconds: 10000 # 서비스 호출 문제를 모니터할 시간 간격, 즉 서킷 브레이커가 열리기 위한 조건을 체크할 시간
-          numBuckets: 10  # 모니터할 시간 간격에서 유지할 측정 지표의 버킷 수, ( timeInMilliseconds )시간 동안 ( numBuckets )의 갯수만큼 쪼개어 통계 및 수집함
-    member:
-      execution:
-        isolation:
-          thread:
-            timeoutInMilliseconds: 8000 
-            # 하나의 Request 즉 Thread에 대한 총 timeout 시간
-            # ribbon 설정과 연관지어서 설정 ( ConnectTimeout + ReadTimeout ) * ( MaxAutoRetries + 1 ) * ( MaxAutoRetriesNextServer + 1) 보다 커야함
-            
-eureka: # 유레카 서버 설정
-  instance: # 유레카 인스턴스 설정
-    hostname: localhost
-  client:
-    register-with-eureka: true  # 유레카 서비스에 등록할지 여부
-    fetch-registry: true  # 유레카에서 조회할지 여부
-    service-url:  # 서비스할 url
-      defaultZone: http://${eureka.instance.hostname}:8761/eureka/  # 유레카 서버의 url
-
+  
+  
+header:
+   authorization: Authorization
 ---
+
 spring:
-  profiles: dev
+  profiles: 
+    include:
+      - dev
+      - zuul
+      - service
+      - hystrix
+      - ribbon
+      - eureka
 
 server:
   port: 8762 
   
-eureka:
-  client:
-    register-with-eureka: false
-    fetch-registry: false
-  
-
 ---
+
 spring:
-  profiles: prd
+  profiles: 
+    include:
+      - prd
+      - zuul
+      - service
+      - hystrix
+      - ribbon
+      - eureka
 
 server:
   port: 8762
@@ -112,11 +59,3 @@ aws:
     serviceIp:
       first: 999.99.99
       second: 888.88.88
-      
-# 이중화 방안 생각
-eureka:
-  client:
-    register-with-eureka: false
-    fetch-registry: false
-    serviceUrl:
-      defaultZone: http://${aws.ec2.serviceIp.first}:${server.port}/eureka/, http://${aws.ec2.serviceIp.second}:${server.port}/eureka/

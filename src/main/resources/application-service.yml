@@ -1,0 +1,17 @@
+---
+
+spring:
+   profiles: local
+
+
+---
+
+spring:
+   profiles: dev
+
+
+---
+
+spring:
+   profiles: prd
+
