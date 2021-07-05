@@ -5,15 +5,22 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.exception.ZuulException;
+import com.ssb.apigateway.comm.util.JwtUtil;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
 public class AuthorizeFilter extends ZuulFilter{
+	
+	private JwtUtil jwtUtil;
 	
 	@Value("${header.authorization}")
 	private String authHeader;
@@ -44,6 +51,9 @@ public class AuthorizeFilter extends ZuulFilter{
 		RequestContext ctx = RequestContext.getCurrentContext();
 		HttpServletRequest request =  ctx.getRequest();
 		String authToken = request.getHeader(authHeader);
+		
+		log.info(authToken);
+		log.info(JwtUtil.main());
 		
 		if(!validateToken(authToken)) {
 			ctx.setSendZuulResponse(false);
