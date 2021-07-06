@@ -24,6 +24,21 @@ server:
   
 header:
    authorization: Authorization
+
+jwt:
+   apikey: jwtapikey
+   login:
+      memberKey: memberId
+      valid:
+         minute: 60
+   access:
+      valid:
+         minute: 1
+   refresh:
+      valid:
+         day: 30 
+   
+   
 ---
 
 spring:

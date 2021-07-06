@@ -1,16 +1,22 @@
 package com.ssb.apigateway.comm.constant;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public enum ApiGatewayConstant{
-	HEADER_BEARER_SPLIT("Bearer ");
+	
+	HEADER_BEARER_SPLIT("Bearer "),
+	/* 토큰 헤더 정보 */
+	TOKEN_HEADER_TYP("JWT"),
+	TOKEN_HEADER_ALG("HS256"),
+	/* 토큰 발급 타입 */
+	TOKEN_LOGIN_TYPE("L"),
+	TOKEN_ACCESS_TYPE("A"),
+	TOKEN_REFRESH_TYPE("R");
 
-	private final String value; //
+	@Getter
+    private final String value;
 	
-	ApiGatewayConstant(String value) {
-		this.value = value;
-	}
-	
-	public String getValue() {
-		return this.value;
-	}
 }
+
