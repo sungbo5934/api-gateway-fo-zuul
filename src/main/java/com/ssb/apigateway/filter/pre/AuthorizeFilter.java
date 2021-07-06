@@ -20,10 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class AuthorizeFilter extends ZuulFilter{
 	
+	@Autowired
 	private JwtUtil jwtUtil;
-	
-	@Value("${header.authorization}")
-	private String authHeader;
 	
 	private String filterType = "pre";
 	
@@ -50,12 +48,8 @@ public class AuthorizeFilter extends ZuulFilter{
 	public Object run() throws ZuulException {
 		RequestContext ctx = RequestContext.getCurrentContext();
 		HttpServletRequest request =  ctx.getRequest();
-		String authToken = request.getHeader(authHeader);
 		
-		log.info(authToken);
-		log.info(JwtUtil.main());
-		
-		if(!validateToken(authToken)) {
+		if(!jwtUtil.requestTokenChk(request)) {
 			ctx.setSendZuulResponse(false);
 			ctx.setResponseBody("Api Key is not Validate");
 			ctx.setResponseStatusCode(HttpStatus.SC_UNAUTHORIZED);
@@ -64,11 +58,5 @@ public class AuthorizeFilter extends ZuulFilter{
 		
 		return null;
 	}
-	
-	private boolean validateToken(String tokenHeader) {
-		boolean tokenValide = false;
-		Optional.ofNullable(tokenHeader);
-        return tokenValide;
-    }
 
 }
