@@ -26,9 +26,9 @@ header:
    authorization: Authorization
 
 jwt:
-   apikey: jwtapikey
+   issuer: ssb_zuul_gateway_v0.1
+   apikey: c3NiZ2F0ZXdheWtleUhTMjU2c2VjcmV0S2V5IUAxMjM=
    login:
-      memberKey: memberId
       valid:
          minute: 60
    access:
