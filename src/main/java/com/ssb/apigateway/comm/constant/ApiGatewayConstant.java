@@ -13,9 +13,7 @@ public enum ApiGatewayConstant{
 	/* 토큰 발급 타입 */
 	TOKEN_LOGIN_TYPE("L"),
 	TOKEN_ACCESS_TYPE("A"),
-	TOKEN_REFRESH_TYPE("R"),
-	/* 토큰 member 정보 key*/
-	TOKEN_MEMBER_KEY("memberInfo");
+	TOKEN_REFRESH_TYPE("R");
 
 	@Getter
     private final String value;
