@@ -47,9 +47,8 @@ public class AuthorizeFilter extends ZuulFilter{
 	@Override
 	public Object run() throws ZuulException {
 		RequestContext ctx = RequestContext.getCurrentContext();
-		HttpServletRequest request =  ctx.getRequest();
 		
-		if(!jwtUtil.requestTokenChk(request)) {
+		if(!jwtUtil.requestTokenChk(ctx)) {
 			ctx.setSendZuulResponse(false);
 			ctx.setResponseBody("Api Key is not Validate");
 			ctx.setResponseStatusCode(HttpStatus.SC_UNAUTHORIZED);
