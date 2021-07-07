@@ -30,6 +30,9 @@ public class JwtUtil {
 	@Value("${jwt.issuer}")
 	private String issuer;
 	
+	@Value("${jwt.login.memberKey}")
+	private String memberKey;
+	
 	@Value("${jwt.login.valid.minute}")
 	private int loginTokenValidMin;
 	
@@ -77,9 +80,9 @@ public class JwtUtil {
 	@SuppressWarnings("unchecked")
 	private void getLogingMemberChk(RequestContext ctx, Claims claims){
 		
-		if(claims.get(ApiGatewayConstant.TOKEN_MEMBER_KEY.getValue()) != null) {
+		if(claims.get(memberKey) != null) {
 			ctx.addZuulResponseHeader(authHeader, doGenerateToken(apiKey, 
-					(Map<String, Object>)claims.get(ApiGatewayConstant.TOKEN_MEMBER_KEY.getValue())));
+					(Map<String, Object>)claims.get(memberKey)));
 			
 		}
 		
