@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.exception.ZuulException;
-import com.ssb.apigateway.comm.util.JwtUtil;
+import com.ssb.apigateway.comm.util.JwtHelper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthorizeFilter extends ZuulFilter{
 	
 	@Autowired
-	private JwtUtil jwtUtil;
+	private JwtHelper jwtUtil;
 	
 	private String filterType = "pre";
 	
@@ -46,6 +46,7 @@ public class AuthorizeFilter extends ZuulFilter{
 	
 	@Override
 	public Object run() throws ZuulException {
+		
 		RequestContext ctx = RequestContext.getCurrentContext();
 		
 		if(!jwtUtil.requestTokenChk(ctx)) {

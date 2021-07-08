@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-public class JwtUtil {
+public class JwtHelper {
 	
 	@Value("${jwt.apikey}")
 	private String apiKey;

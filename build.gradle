@@ -17,15 +17,17 @@ ext {
 }
 
 dependencies {
-	//1. implementation : 항상 적용 , compile : 해당 디펜던시에 의존된 모든 모듈을 재빌드
+	//1. implementation : 항상 적용 , compile : 해당 디펜던시에 의존된 모든 모듈을 재빌드, api : 해당 디펜던시에 의존된 모든 모듈을 재빌드
 	//2. debugImplementation : 디버그 빌드 시에만 적용.
 	//3. releaseImplementation : 릴리즈 빌드 시에만 적용.
 	//4. testImplementation : 테스트 코드를 수행할 때만 적용.
+	//5. compile : 컴파일 단계에서만 적용. (ex : lombok)
+	//6. annotationProcessor : 어노테이션 프로세스의 종속성 적용.
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-zuul'
 	//lombok 라이브러리
-	implementation 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
 	//Jwt 토큰 라이브러리
 	implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.2'
     implementation group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.2'
