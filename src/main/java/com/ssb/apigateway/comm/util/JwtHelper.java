@@ -15,9 +15,11 @@ import com.netflix.zuul.context.RequestContext;
 import com.ssb.apigateway.comm.constant.ApiGatewayConstant;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -81,8 +83,14 @@ public class JwtHelper {
 	private void getLogingMemberChk(RequestContext ctx, Claims claims){
 		
 		if(claims.get(memberKey) != null) {
-			ctx.addZuulResponseHeader(authHeader, doGenerateToken(apiKey, 
-					(Map<String, Object>)claims.get(memberKey)));
+			try {
+				
+				ctx.addZuulResponseHeader(authHeader, createToken(apiKey, (Map<String, Object>)claims.get(memberKey)));
+			
+			} catch (Exception e) {
+				
+				log.error("addZuulResponseHeader() : " + e.getMessage());
+			}
 			
 		}
 		
@@ -95,7 +103,8 @@ public class JwtHelper {
 	* @param secretKey
 	* @return Key
 	* 인코딩된 SecretKey을 이용하여 Keys 객체 생성
-	* Keys.hmacShaKeyFor() : HMAC-SHA algorithms을 이용하여 SecretKey 인스턴스를 생성
+	* 	Keys.hmacShaKeyFor() : HMAC-SHA algorithms을 이용하여 SecretKey 인스턴스를 생성
+	* 	HS256 알고리즘 방식 : secretKey의 Bit 크기가 256 이상이어야함 ( Byte 길이 * 8 )
 	*/
 	private Key getSigninKey(String secretKey) {
 	    return Keys.hmacShaKeyFor(Base64.getDecoder().decode(secretKey));
@@ -134,6 +143,34 @@ public class JwtHelper {
 		return 1000l * 60 *  60 * 24 * refreshTokenValidDay;
 	}
 	
+	
+	/** 
+	* @methodName : getExpireTime 
+	* @author : Sungbo Sim
+	* @date : 2021.07.09 
+	* @param type
+	* @return 
+	* 타입별 만료시간 date 생성
+	*/
+	public Date getExpireTime(String type) {
+		
+		Date expireTime = new Date();
+		
+		if(StringUtils.equals(type, ApiGatewayConstant.TOKEN_LOGIN_TYPE.getValue())) {
+			expireTime.setTime(expireTime.getTime() + getLoginTokenTime());
+		}
+		
+		if(StringUtils.equals(type, ApiGatewayConstant.TOKEN_ACCESS_TYPE.getValue())) {
+			expireTime.setTime(expireTime.getTime() + getAccessTokenTime());
+		}
+
+		if(StringUtils.equals(type, ApiGatewayConstant.TOKEN_REFRESH_TYPE.getValue())) {
+			expireTime.setTime(expireTime.getTime() + getRefreshTokenTime());
+		}
+		
+		return expireTime;
+	}
+	
 	/** 
 	* @methodName : requestTokenChk 
 	* @author : Sungbo Sim
@@ -142,28 +179,34 @@ public class JwtHelper {
 	* @return boolean
 	* RequestContext의 request안의 Header정보를 읽어 Token 값을 검증
 	* 로그인 토큰 값이라면 60분 연장된 토큰을 발급하여 로그인을 자동 연장
+	* 
+	* 	ClaimJwtException		: JWT 권한claim 검사가 실패했을 때
+	* 	ExpiredJwtException		: 유효 기간이 지난 JWT를 수신한 경우
+	* 	MalformedJwtException	: 구조적인 문제가 있는 JWT인 경우
+	* 	PrematureJwtException	: 접근이 허용되기 전인 JWT가 수신된 경우
+	* 	SignatureException		: 시그너처 연산이 실패하였거나, JWT의 시그너처 검증이 실패한 경우
+	* 	UnsupportedJwtException	: 수신한 JWT의 형식이 애플리케이션에서 원하는 형식과 맞지 않는 경우. 예를 들어, 암호화된 JWT를 사용하는 애프리케이션에 암호화되지 않은 JWT가 전달되는 경우에 이 예외가 발생합니다.
 	*/
 	public boolean requestTokenChk(RequestContext ctx) {
 		
 		boolean tokenValid = false;
 		try {
 			
-			String token = ctx.getRequest().getHeader(authHeader);
+			String authToken = ctx.getRequest().getHeader(authHeader);
 			
 			Claims claims = Jwts.parserBuilder()
 					.requireIssuer(issuer)
 					.setSigningKey(getSigninKey(apiKey))
 					.build()
-					.parseClaimsJws(token)
+					.parseClaimsJws(authToken)
 					.getBody();
 			
 			tokenValid = true;
 			
 			getLogingMemberChk(ctx, claims);
 			
-		}catch(Exception e) {
-			
-			log.info("Token is Not Valide : " + e.getMessage());
+		} catch(Exception e) {
+			log.error("requestTokenChk() : " + e.getMessage());
 		}
 		
 		return tokenValid;
@@ -186,26 +229,12 @@ public class JwtHelper {
 	* 	iat: 토큰 발급 시간(issued at), 토큰 발급 이후의 경과 시간을 알 수 있음
 	* 	jti: JWT 토큰 식별자(JWT ID), 중복 방지를 위해 사용하며, 일회용 토큰(Access Token) 등에 사용
 	*/
-	public String doGenerateToken(String type, Map<String, Object> claim) {
-		
-		Date expireTime = new Date();
-		
-		if(StringUtils.equals(type, ApiGatewayConstant.TOKEN_LOGIN_TYPE.getValue())) {
-			expireTime.setTime(expireTime.getTime() + getLoginTokenTime());
-		}
-		
-		if(StringUtils.equals(type, ApiGatewayConstant.TOKEN_ACCESS_TYPE.getValue())) {
-			expireTime.setTime(expireTime.getTime() + getAccessTokenTime());
-		}
-
-		if(StringUtils.equals(type, ApiGatewayConstant.TOKEN_REFRESH_TYPE.getValue())) {
-			expireTime.setTime(expireTime.getTime() + getRefreshTokenTime());
-		}
+	public String createToken(String type, Map<String, Object> claim) throws Exception {
 		
 		return Jwts.builder()
 				.setHeader(getHeader())
 				.setIssuer(issuer)
-				.setExpiration(expireTime)
+				.setExpiration(getExpireTime(type))
 				.setNotBefore(new Date())
 				.addClaims(claim)
 				.signWith(getSigninKey(apiKey), SignatureAlgorithm.HS256)
