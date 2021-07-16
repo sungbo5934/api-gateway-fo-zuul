@@ -85,7 +85,7 @@ public class JwtHelper {
 		if(claims.get(memberKey) != null) {
 			try {
 				
-				ctx.addZuulResponseHeader(authHeader, createToken(apiKey, (Map<String, Object>)claims.get(memberKey)));
+				ctx.addZuulResponseHeader(authHeader, createToken(ApiGatewayConstant.TOKEN_LOGIN_TYPE.getValue(), (Map<String, Object>)claims.get(memberKey)));
 			
 			} catch (Exception e) {
 				
@@ -213,7 +213,7 @@ public class JwtHelper {
 	}
 	
 	/** 
-	* @methodName : doGenerateToken 
+	* @methodName : createToken 
 	* @author : Sungbo Sim
 	* @date : 2021.07.07 
 	* @param type
