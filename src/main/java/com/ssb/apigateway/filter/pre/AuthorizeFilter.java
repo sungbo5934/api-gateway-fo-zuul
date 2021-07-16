@@ -7,6 +7,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Component;
 
 import com.netflix.zuul.ZuulFilter;
@@ -22,6 +24,9 @@ public class AuthorizeFilter extends ZuulFilter{
 	
 	@Autowired
 	private JwtHelper jwtUtil;
+	
+	@Autowired
+	private MessageSourceAccessor messageSource;
 	
 	private String filterType = "pre";
 	
@@ -51,7 +56,7 @@ public class AuthorizeFilter extends ZuulFilter{
 		
 		if(!jwtUtil.requestTokenChk(ctx)) {
 			ctx.setSendZuulResponse(false);
-			ctx.setResponseBody("Api Key is not Validate");
+			ctx.setResponseBody(messageSource.getMessage("zuul.pre.unauthor"));
 			ctx.setResponseStatusCode(HttpStatus.SC_UNAUTHORIZED);
 			
 		}

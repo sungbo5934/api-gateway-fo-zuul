@@ -2,6 +2,15 @@
 
 spring:
    profiles: local
+   
+# 1.
+# * circuit health check을 위한 최소 요청(HystrixCommandProperties.circuitBreakerRequestVolumeThreshold())이 있는 경우
+# * 지정한 오류율(HystrixCommandProperties.circuitBreakerErrorThresholdPercentage())을 초과한 경우
+# 2. 회로의 상태를 CLOSED에서 OPEN으로 변경
+# 3. 회로가 열린 동안, 모든 요청에 대해서 fallback method을 바로 실행
+# 4. 일정 시간(HystrixCommandProperties.circuitBreakerSleepWindowInMilliseconds())이 지난 후
+# 하나의 요청을 원래 method로 실행(HALF OPEN)
+# 5. 이 요청이 실패하면 OPEN로 상태 변경 ⇢ 1번부터 실행 이 요청이 성공하면 CLOSED로 상태 변경 ⇢ 3번부터 실행
 
 # Hystrix Circuit Breaker
 # 1. CommandKey ( 각 서버군 이름 ex: member, product ) 이름 단위로 동작
@@ -12,13 +21,14 @@ hystrix:
   command:
     default:
       circuitBreaker:
-        sleepWindowInMilliseconds: 5000 # 서킷 브레이커가 열린 후 히스트릭스가 서비스 호출 시도를 대기하는 시간, 해당 시간 대기 후 다시 시도 ( 기본값 5,000 m/s)
-        errorThresholdPercentage: 50  # 서킷 브레이커가 차단하는 에러 확률 ( timeInMilliseconds 시간동안 requestVolumeThreshold 횟수의 오류 응답 퍼센트 )
-        requestVolumeThreshold: 20  # 히스트릭스가 호출 차단을 고려하는 시간 ( timeInMilliseconds ) 동안 호출을 시도하는 횟수
+         enabled: true
+         sleepWindowInMilliseconds: 5000 # 서킷 브레이커가 열린 후 히스트릭스가 서비스 호출 시도를 대기하는 시간, 해당 시간 대기 후 다시 시도 ( 기본값 5,000 m/s)
+         errorThresholdPercentage: 50  # 서킷 브레이커가 차단하는 에러 확률 ( timeInMilliseconds 시간동안 requestVolumeThreshold 횟수의 오류 응답 퍼센트 )
+         requestVolumeThreshold: 10  # 히스트릭스가 호출 차단을 고려하는 시간 ( timeInMilliseconds ) 동안 호출을 시도하는 횟수
       metrics:
-        rollingStats:
-          timeInMilliseconds: 10000 # 서비스 호출 문제를 모니터할 시간 간격, 즉 서킷 브레이커가 열리기 위한 조건을 체크할 시간
-          numBuckets: 10  # 모니터할 시간 간격에서 유지할 측정 지표의 버킷 수, ( timeInMilliseconds )시간 동안 ( numBuckets )의 갯수만큼 쪼개어 통계 및 수집함
+         rollingStats:
+            timeInMilliseconds: 10000 # 서비스 호출 문제를 모니터할 시간 간격, 즉 서킷 브레이커가 열리기 위한 조건을 체크할 시간
+            numBuckets: 10  # 모니터할 시간 간격에서 유지할 측정 지표의 버킷 수, ( timeInMilliseconds )시간 동안 ( numBuckets )의 갯수만큼 쪼개어 통계 및 수집함
     member:
       execution:
         isolation:
