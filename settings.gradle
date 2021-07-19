@@ -1,1 +1,3 @@
 rootProject.name = 'api-gateway-fo'
+include ':comm-fo'
+project(':comm-fo').projectDir = new File(settingsDir, '../comm-fo')
