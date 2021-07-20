@@ -1,16 +1,15 @@
 package com.ssb.apigateway.filter.pre;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Component;
 
+import com.google.gson.Gson;
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.exception.ZuulException;
+import com.ssb.apigateway.comm.response.GatewayCommResponse;
+import com.ssb.comm.constant.CommResponseConstant;
 import com.ssb.comm.helper.JwtHelper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -22,14 +21,11 @@ public class AuthorizeFilter extends ZuulFilter{
 	@Autowired
 	private JwtHelper jwtHelper;
 	
-	@Autowired
-	private MessageSourceAccessor messageSource;
-	
 	private String filterType = "pre";
 	
 	private boolean shouldFilter = true;
 	
-	private int filterOrder = 1;
+	private int filterOrder = 0;
 
 	@Override
 	public boolean shouldFilter() {
@@ -50,18 +46,13 @@ public class AuthorizeFilter extends ZuulFilter{
 	public Object run() throws ZuulException {
 		
 		RequestContext ctx = RequestContext.getCurrentContext();
-		Map<String, Object> claims = jwtHelper.getTokenClaims(ctx.getRequest());
 		
-		if(claims == null) {
+		if(!jwtHelper.getTokenValid(ctx.getRequest())) {
 			
 			ctx.setSendZuulResponse(false);
-			ctx.setResponseBody(messageSource.getMessage("zuul.pre.unauthor"));
+			ctx.setResponseBody(new Gson().toJson(new GatewayCommResponse(CommResponseConstant.AUTHORIZE.getResultCode(), CommResponseConstant.AUTHORIZE.getResultMsg())));
 			ctx.setResponseStatusCode(HttpStatus.SC_UNAUTHORIZED);
-			
-		}else {
-			
-			jwtHelper.setResLoginToken(ctx.getResponse(), claims);
-			
+		
 		}
 		
 		return null;
