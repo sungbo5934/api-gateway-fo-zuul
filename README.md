@@ -4,3 +4,7 @@
 3. 로드밸런싱 ( Ribbon )
 4. 로그 ( Cloud Watch 연결 예정 )
 5. 쓰레드 ( Hystrix )
+
+
+
+# SPRING CLOUD 전환 작업 
