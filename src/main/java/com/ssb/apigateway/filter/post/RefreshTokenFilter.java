@@ -58,11 +58,9 @@ public class RefreshTokenFilter extends ZuulFilter{
 		List<Pair<String, String>>  test = ctx.getZuulResponseHeaders();
 		List<Pair<String, String>>  test2 = ctx.getOriginResponseHeaders();
 		String authToken = ctx.getResponse().getHeader(authHeader);
-		for(String name : ctx.getResponse().getHeaderNames()) {
-			log.info(ctx.getResponse().getHeader(name));
-		}
+
 		if(StringUtils.isEmpty(authToken)) {
-			httpServletUtil.setResLoginToken(ctx.getResponse(), jwtHelper.getTokenClaims(ctx.getRequest()));
+			//httpServletUtil.setResLoginToken(ctx.getResponse(), jwtHelper.getTokenClaims(ctx.getRequest()));
 		}
 		return null;
 	}
