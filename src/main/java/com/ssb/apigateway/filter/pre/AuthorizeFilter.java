@@ -1,5 +1,7 @@
 package com.ssb.apigateway.filter.pre;
 
+import java.util.Collections;
+
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -9,6 +11,7 @@ import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.exception.ZuulException;
 import com.ssb.apigateway.comm.response.GatewayCommResponse;
+import com.ssb.comm.constant.CommJwtConstant;
 import com.ssb.comm.constant.CommResponseConstant;
 import com.ssb.comm.helper.JwtHelper;
 
