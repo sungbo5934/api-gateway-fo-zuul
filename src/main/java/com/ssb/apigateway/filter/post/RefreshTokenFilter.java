@@ -1,6 +1,7 @@
 package com.ssb.apigateway.filter.post;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,12 +56,16 @@ public class RefreshTokenFilter extends ZuulFilter{
 	@Override
 	public Object run() throws ZuulException {
 		RequestContext ctx = RequestContext.getCurrentContext();
-		List<Pair<String, String>>  test = ctx.getZuulResponseHeaders();
-		List<Pair<String, String>>  test2 = ctx.getOriginResponseHeaders();
-		String authToken = ctx.getResponse().getHeader(authHeader);
+		List<Pair<String, String>> serviceHeader = ctx.getZuulResponseHeaders();
+		//List<Pair<String, String>> oriHeader = ctx.getOriginResponseHeaders();
+		List<Pair<String, String>> filterHeader = serviceHeader.stream().filter(data -> StringUtils.equals(data.first(), authHeader)).collect(Collectors.toList());
+		String authToken = StringUtils.EMPTY;
+		if(!filterHeader.isEmpty()) {
+			authToken = filterHeader.get(0).second();
+		}
 
 		if(StringUtils.isEmpty(authToken)) {
-			//httpServletUtil.setResLoginToken(ctx.getResponse(), jwtHelper.getTokenClaims(ctx.getRequest()));
+			httpServletUtil.setResLoginToken(ctx.getResponse(), jwtHelper.getTokenClaims(ctx.getRequest()));
 		}
 		return null;
 	}
