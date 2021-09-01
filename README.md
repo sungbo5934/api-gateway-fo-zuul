@@ -9,4 +9,4 @@
 
 # SPRING CLOUD 전환 작업 
 1. Spring Cloud Gateway 이용
-2. Zuul과의 차이점 공부 
+2. Zuul과의 차이점 공부  ( https://happycloud-lee.tistory.com/218 )
