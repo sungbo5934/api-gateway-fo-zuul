@@ -5,11 +5,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.stereotype.Component;
 
 @SpringBootApplication
 @EnableEurekaClient
 @EnableZuulProxy
+@EnableAspectJAutoProxy
 @ComponentScan({"com.ssb.apigateway.*","com.ssb.comm.*"})
 public class ApiGatewayFoApplication {
 
