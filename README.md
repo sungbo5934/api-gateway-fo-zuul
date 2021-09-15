@@ -10,3 +10,4 @@
 # SPRING CLOUD 전환 작업 
 1. Spring Cloud Gateway 이용
 2. Zuul과의 차이점 공부  ( https://happycloud-lee.tistory.com/218 )
+3. Zuul 지원 종료 (spring-boot 2.4.x 이후)
